@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <class name="cvshistorytodbplugin.model.CVSFile" table="cvs_file">
+
+        <id name="fileId" type="java.lang.Integer" column="file_id">
+            <generator class="identity"/>
+        </id>
+        
+        <property name="name" type="java.lang.String" column="name" />
+		<property name="path" type="java.lang.String" column="path" />
+		<property name="size" type="java.lang.Integer" column="size" />
+
+		<property name="createdBy" type="java.lang.Integer" column="created_by" not-null="true" update="false"/>
+	    <property name="createdDate" type="java.util.Date" column="created_date" not-null="true" update="false" />
+	    <property name="modifiedBy" type="java.lang.Integer" column="modified_by" not-null="false" update="true"/>
+	    <property name="modifiedDate" type="java.util.Date" column="modified_date" not-null="false" update="true" />
+
+		<many-to-one name="fileType" class="cvshistorytodbplugin.model.CVSFileType" column="file_type_id" />
+		<many-to-one name="project" class="cvshistorytodbplugin.model.CVSProject" column="project_id" />  
+
+    </class>
+    
+</hibernate-mapping>

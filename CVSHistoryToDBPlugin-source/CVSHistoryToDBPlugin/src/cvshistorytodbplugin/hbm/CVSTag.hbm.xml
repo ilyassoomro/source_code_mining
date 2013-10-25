@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <class name="cvshistorytodbplugin.model.CVSTag" table="cvs_tag">
+
+        <id name="tagId" type="java.lang.Integer" column="tag_id">
+            <generator class="identity"/>
+        </id>
+        
+        <property name="tagName" type="java.lang.String" column="tag_name" />
+		<property name="isBase" type="java.lang.Boolean" column="is_base" />
+		<property name="isHead" type="java.lang.Boolean" column="is_head" />
+		<property name="branchNumber" type="java.lang.String" column="branch_number" />
+
+    </class>
+    
+</hibernate-mapping>

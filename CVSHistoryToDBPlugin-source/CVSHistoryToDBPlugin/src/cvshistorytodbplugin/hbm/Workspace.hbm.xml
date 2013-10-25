@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <class name="cvshistorytodbplugin.model.Workspace" table="workspace">
+
+        <id name="workspaceId" type="java.lang.Integer" column="workspace_id">
+            <generator class="identity"/>
+        </id>
+        
+        <property name="name" type="java.lang.String" column="name" />
+		<property name="path" type="java.lang.String" column="path" />
+
+    </class>
+    
+</hibernate-mapping>

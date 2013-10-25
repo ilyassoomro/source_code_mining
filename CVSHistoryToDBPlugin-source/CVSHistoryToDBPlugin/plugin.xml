@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+   <extension
+         point="org.eclipse.ui.views">
+      <category
+            name="HistoryToDBView"
+            id="CVSHistoryToDBPlugin">
+      </category>
+      <view
+            name="History To DB View"
+            icon="icons/sample.gif"
+            category="CVSHistoryToDBPlugin"
+            class="cvshistorytodbplugin.views.HistoryToDBView"
+            id="cvshistorytodbplugin.views.HistoryToDBView">
+      </view>
+   </extension>
+   <extension
+         point="org.eclipse.ui.perspectiveExtensions">
+      <perspectiveExtension
+            targetID="org.eclipse.jdt.ui.JavaPerspective">
+         <view
+               ratio="0.5"
+               relative="org.eclipse.ui.views.TaskList"
+               relationship="right"
+               id="cvshistorytodbplugin.views.HistoryToDBView">
+         </view>
+      </perspectiveExtension>
+   </extension>
+
+</plugin>
