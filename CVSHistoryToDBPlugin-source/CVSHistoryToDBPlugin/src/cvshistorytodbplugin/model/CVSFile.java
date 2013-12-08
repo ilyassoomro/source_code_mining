@@ -8,7 +8,7 @@ public class CVSFile {
 	String name;          
 	String path;          
 	CVSFileType fileType;  
-	Integer size;          
+	Long size;          
 	CVSProject project;    
 	Date createdDate ; 
 	Integer createdBy;    
@@ -39,10 +39,10 @@ public class CVSFile {
 	public void setFileType(CVSFileType fileType) {
 		this.fileType = fileType;
 	}
-	public Integer getSize() {
+	public Long getSize() {
 		return size;
 	}
-	public void setSize(Integer size) {
+	public void setSize(Long size) {
 		this.size = size;
 	}
 	public CVSProject getProject() {
@@ -78,8 +78,8 @@ public class CVSFile {
 	@Override
 	public String toString() {
 		return "CVSFile [fileId=" + fileId + ", name=" + name + ", path="
-				+ path + ", fileType=" + fileType + ", size=" + size
-				+ ", project=" + project + ", createdDate=" + createdDate
+				+ path + ", fileType=" + (fileType!=null ? fileType.getExtension() :"") + ", size=" + size
+				+ ", project=" + (project!=null? project.getName():"") + ", createdDate=" + createdDate
 				+ ", createdBy=" + createdBy + ", modifiedDate=" + modifiedDate
 				+ ", modifiedBy=" + modifiedBy + "]";
 	}   

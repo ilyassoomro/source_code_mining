@@ -39,8 +39,8 @@ public class CVSProject {
 	@Override
 	public String toString() {
 		return "CVSProject [projectId=" + projectId + ", name=" + name
-				+ ", path=" + path + ", workspace=" + workspace
-				+ ", repository=" + repository + "]";
+				+ ", path=" + path + ", workspace=" + (workspace!=null? workspace.getName():"")
+				+ ", repository=" + (repository!=null? repository.getHost()+"/"+repository.getPath():"") + "]";
 	}
 
 }

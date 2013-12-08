@@ -6,7 +6,7 @@
 
     <class name="cvshistorytodbplugin.model.CVSFileRevision" table="file_revision">
 
-        <id name="fileVersionId" type="java.lang.Integer" column="file_version_id">
+        <id name="fileVersionId" type="java.lang.Integer" column="file_revision_id">
             <generator class="identity"/>
         </id>
         
@@ -17,6 +17,11 @@
 
 		<many-to-one name="cvsFile" class="cvshistorytodbplugin.model.CVSFile" column="file_id" />      
 		<many-to-one name="author" class="cvshistorytodbplugin.model.CVSAuthor" column="author_id" />
+
+		<set name="fileRevisionTags" cascade="all, delete-orphan">
+      		<key column="file_revision_id" />
+      		<one-to-many class="cvshistorytodbplugin.model.CVSFileRevisionTag" />
+	    </set>
 
     </class>
     

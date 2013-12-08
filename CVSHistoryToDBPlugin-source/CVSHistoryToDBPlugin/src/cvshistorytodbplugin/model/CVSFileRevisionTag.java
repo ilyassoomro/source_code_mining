@@ -25,7 +25,7 @@ public class CVSFileRevisionTag {
 	@Override
 	public String toString() {
 		return "CVSFileRevisionTag [fileRevisionTagId=" + fileRevisionTagId
-				+ ", fileRevision=" + fileRevision + ", tag=" + tag + "]";
+				+ ", fileRevision=" + (fileRevision!=null?fileRevision.getRevision():"") + ", tag=" + (tag!=null? tag.getTagName():"") + "]";
 	}              
 
 }

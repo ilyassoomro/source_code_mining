@@ -21,8 +21,8 @@
 	<!-- end Hammad Sophie -->
 	<!-- C3P0 Stuff -->
 	<property name="connection.provider_class">org.hibernate.connection.C3P0ConnectionProvider</property>
-	<property name="hibernate.c3p0.idle_test_period">14400</property><!-- 4 hrs -->
-	<property name="hibernate.c3p0.timeout">25200</property><!-- 7 hrs -->
+	<property name="hibernate.c3p0.idle_test_period">14400</property>
+	<property name="hibernate.c3p0.timeout">25200</property>
 	<property name="hibernate.c3p0.max_size">100</property>
 	<property name="hibernate.c3p0.min_size">3</property>
 	<property name="hibernate.c3p0.max_statements">0</property>	
@@ -30,7 +30,7 @@
 	
 	<property name="hibernate.c3p0.preferredTestQuery">SELECT 1;</property>
 	<property name="hibernate.c3p0.testConnectionOnCheckout">true</property> 
-
+	
     
 
 	<mapping resource="cvshistorytodbplugin/hbm/CVSAuthor.hbm.xml" />

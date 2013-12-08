@@ -1,5 +1,6 @@
 package cvshistorytodbplugin.views;
 
+
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
@@ -26,17 +27,18 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.ViewPart;
 
-import viewplugin.util.TreeViewerUtility;
-import viewplugin.views.actions.DBSettingAction;
-import viewplugin.views.actions.FileHistoryLogAction;
-import viewplugin.views.actions.FileHistorySaveAction;
-import viewplugin.views.actions.FileOpenAction;
-import viewplugin.views.actions.MantisViewKeyListener;
-import viewplugin.views.actions.ProjectOpenAction;
-import viewplugin.views.presentation.NodeContentHandler;
-import viewplugin.views.presentation.NodeContentProvider;
-import viewplugin.views.presentation.NodeLabelProvider;
-import viewplugin.views.presentation.NodeSorter;
+import cvshistorytodbplugin.util.TreeViewerUtility;
+import cvshistorytodbplugin.views.actions.DBSettingAction;
+import cvshistorytodbplugin.views.actions.FileHistoryLogAction;
+import cvshistorytodbplugin.views.actions.FileHistorySaveAction;
+import cvshistorytodbplugin.views.actions.FileOpenAction;
+import cvshistorytodbplugin.views.actions.MantisViewKeyListener;
+import cvshistorytodbplugin.views.actions.ProjectOpenAction;
+import cvshistorytodbplugin.views.presentation.NodeContentHandler;
+import cvshistorytodbplugin.views.presentation.NodeContentProvider;
+import cvshistorytodbplugin.views.presentation.NodeLabelProvider;
+import cvshistorytodbplugin.views.presentation.NodeSorter;
+
 
 /**
  * This sample class demonstrates how to plug-in a new
@@ -80,7 +82,7 @@ public class HistoryToDBView extends ViewPart {
 	 */
 	public void createPartControl(Composite parent) {  
 		plugin = this;
-		initTool(); 
+		//initTool(); 
 				
 		viewer = new TreeViewer(parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
 		treeContentProvider = new NodeContentProvider(getViewSite(), viewer);
@@ -220,5 +222,15 @@ public class HistoryToDBView extends ViewPart {
 	private static HistoryToDBView plugin = null;
 	public static HistoryToDBView getPlugin(){
 		return plugin;
+	}
+	
+	/**
+	 * Read Display events and update display according to user input
+	 */
+	public static void readAndUpdate(){
+		if(plugin!=null){
+			plugin.getViewSite().getShell().getDisplay().readAndDispatch();
+			plugin.getViewSite().getShell().getDisplay().update();
+		}
 	}
 }

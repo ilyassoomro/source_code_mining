@@ -14,7 +14,7 @@ public class CVSFileType {
 		return extension;
 	}
 	public void setExtension(String extension) {
-		this.extension = extension;
+		this.extension = extension==null?"":extension;
 	}
 	@Override
 	public String toString() {
