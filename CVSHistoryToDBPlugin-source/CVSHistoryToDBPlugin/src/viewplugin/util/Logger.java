@@ -25,12 +25,12 @@ public class Logger {
 		if(messages!=null){
 			if(type == ERROR){
 				for(Object msg:messages){
-					errStream.println("Error: "+new Date()+" : "+msg);
+					errStream.println("Error : "+new Date()+" : "+msg);
 				}
 				//showConsole();
 			}else if(type == DEBUG){
 				for(Object msg:messages){
-					stream.println("Debug: "+new Date()+" : "+msg);
+					stream.println("Debug : "+new Date()+" : "+msg);
 				}	
 			}
 		}
