@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <class name="cvshistorytodbplugin.model.db.DBFileType" table="file_type">
+		<cache usage="read-only" />
+
+        <id name="fileTypeId" type="java.lang.Integer" column="file_type_id">
+            <generator class="identity"/>
+        </id>
+        
+        <property name="extension" type="java.lang.String" column="extension" />
+
+    </class>
+    
+</hibernate-mapping>

@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <class name="cvshistorytodbplugin.model.db.DBProject" table="project">
+		<cache usage="read-only" />
+
+        <id name="projectId" type="java.lang.Integer" column="project_id">
+            <generator class="identity"/>
+        </id>
+        
+        <property name="name" type="java.lang.String" column="name" />
+		<property name="path" type="java.lang.String" column="path" />
+
+		<many-to-one name="workspace" class="cvshistorytodbplugin.model.db.Workspace" column="workspace_id" />      
+		<many-to-one name="repository" class="cvshistorytodbplugin.model.db.DBRepository" column="repository_id" />
+
+    </class>
+    
+</hibernate-mapping>
