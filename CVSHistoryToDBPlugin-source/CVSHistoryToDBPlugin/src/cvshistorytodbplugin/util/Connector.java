@@ -83,7 +83,7 @@ public class Connector {
     	String[] params = url.split("\\?")[1].split("&");
     	for(String param: params){
     		String[] p = param.split("=");
-    		if(p[0].equals("password")){
+    		if(p!=null && p.length==2 && p[0].equals("password")){
     			return p[1];
     		}
     	}

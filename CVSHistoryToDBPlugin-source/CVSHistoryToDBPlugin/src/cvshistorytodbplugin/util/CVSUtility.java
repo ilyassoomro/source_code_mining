@@ -1,5 +1,7 @@
 package cvshistorytodbplugin.util;
 
+import org.eclipse.swt.internal.image.GIFFileFormat;
+import org.eclipse.team.core.history.IFileHistory;
 import org.eclipse.team.core.history.IFileRevision;
 import org.eclipse.team.internal.ccvs.core.filehistory.CVSFileHistory;
 
@@ -30,17 +32,29 @@ public class CVSUtility {
 		return new Integer(v1.length).compareTo(v2.length);
 	}
 	
-	public static String getPreviousVersion(String version, CVSFileHistory fileHistory){
+	/**
+	 * 
+	 * @param version
+	 * @param fileHistory
+	 * @deprecated FIXME: Need to implement GIT or other repository previous version calculation
+	 * @return
+	 */
+	public static String getPreviousVersion(String version, IFileHistory fileHistory){
 		if(version!=null){
 			try{
-				if(version.endsWith(".1")){		// 1.1.2.3.1		--> 1.1.2.3
-					IFileRevision revision = getVersionFromPreviousBranch(version, fileHistory);
-					if(revision!=null){
-						return revision.getContentIdentifier();
+				if(fileHistory instanceof CVSFileHistory){
+					if(version.endsWith(".1")){		// 1.1.2.3.1		--> 1.1.2.3
+						IFileRevision revision = getVersionFromPreviousBranch(version, fileHistory);
+						if(revision!=null){
+							return revision.getContentIdentifier();
+						}
+					}else{							// 1.1.2.3.4		--> 1.1.2.3.3
+						String lastSegment = version.substring(version.lastIndexOf('.')+1);
+						return version.substring(0,version.lastIndexOf('.'))+"."+(Integer.parseInt(lastSegment)-1);
 					}
-				}else{							// 1.1.2.3.4		--> 1.1.2.3.3
-					String lastSegment = version.substring(version.lastIndexOf('.')+1);
-					return version.substring(0,version.lastIndexOf('.'))+"."+(Integer.parseInt(lastSegment)-1);
+				}else{
+					// FIXME: Need to implement GIT or other repository previous version calculation
+					throw new Exception("Cannot find previuos version for given Repository");
 				}
 			}catch(Exception e){
 				Logger.error("Error while determining previous version of : "+version);
@@ -49,7 +63,7 @@ public class CVSUtility {
 		return null;
 	}
 	
-	private static IFileRevision getVersionFromPreviousBranch(String version, CVSFileHistory fileHistory){
+	private static IFileRevision getVersionFromPreviousBranch(String version, IFileHistory fileHistory){
 		if(version.indexOf(".")>0){
 			version = version.substring(0,version.lastIndexOf('.'));
 			IFileRevision revision = fileHistory.getFileRevision(version);

@@ -1,18 +1,23 @@
 package cvshistorytodbplugin.util;
 
-import java.io.File;
 import java.util.HashMap;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.team.internal.ccvs.core.Policy;
 import org.hibernate.FlushMode;
 import org.hibernate.HibernateException;
+import org.hibernate.Query;
+import org.hibernate.SQLQuery;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
+import org.hibernate.cfg.Environment;
 import org.hibernate.dialect.function.ClassicAvgFunction;
 import org.hibernate.dialect.function.ClassicCountFunction;
 import org.hibernate.dialect.function.ClassicSumFunction;
+import org.hibernate.tool.hbm2ddl.SchemaExport;
+
+import cvshistorytodbplugin.model.db.Workspace;
 
 /**
  * Configures and provides access to Hibernate sessions, tied to the
@@ -31,10 +36,9 @@ public class HibernateSessionFactory {
      * in the default package. Use #setConfigFile() to update
      * the location of the configuration file for the current session.
      */
-    private static String CONFIG_FILE_LOCATION = "./plugins/cvsHistoryToDB/hibernate.cfg.xml";
+    private static String CONFIG_FILE_LOCATION = "../hbm/hibernate.cfg.xml";
     private static final ThreadLocal threadLocal = new ThreadLocal();
-    private static File configFile = new File(CONFIG_FILE_LOCATION);
-
+    
     private HibernateSessionFactory() {
     }
 
@@ -49,8 +53,8 @@ public class HibernateSessionFactory {
         Session session = (Session)threadLocal.get();
 
         if(session == null || !session.isOpen()) {
-        	monitor = Policy.monitorFor(monitor);
-    		monitor.beginTask("Opening new Database Session: ", 100);
+        	//monitor = Policy.subMonitorFor(monitor,10);
+    		monitor.setTaskName("Opening new Database Session: ");
     		
             if(!sessionFactoryMap.containsKey(dbConfig)) {
                 rebuildSessionFactory(dbConfig, monitor);
@@ -59,48 +63,54 @@ public class HibernateSessionFactory {
 			session = sessionFactory.openSession();
 			session.setFlushMode(FlushMode.COMMIT);
 			threadLocal.set(session);
-			monitor.done();
+			//monitor.done();
         }
 
         return session;
     }
 
-    public static void rebuildSessionFactory(String dbConfig, IProgressMonitor monitor) {
+    private static String getConnectionURL(String dbConfig){
+    	String dbProtocol = Connector.getDBProtocol(dbConfig);
+        String serverName = Connector.getServer(dbConfig);
+        String port = Connector.getPort(dbConfig);
+        return dbProtocol+"://"+serverName+":"+port;
+    }
+    
+    public static void rebuildSessionFactory(String dbConfig, IProgressMonitor monitor){
         try {
-        	monitor = Policy.monitorFor(monitor);
-    		monitor.beginTask("Building Session Factory: ", 100);
+        	//monitor = Policy.subMonitorFor(monitor,20);
+    		//monitor.beginTask("Building Session Factory: ", 100);
     		monitor.setTaskName("Retreiving Database Connection Setting");
     		
-            String dbProtocol = Connector.getDBProtocol(dbConfig);
-            String serverName = Connector.getServer(dbConfig);
-            String port = Connector.getPort(dbConfig);
-            String dbName = Connector.getDBName(dbConfig);
-            String login = Connector.getUser(dbConfig);
+    		String dbName = Connector.getDBName(dbConfig);
+    		String login = Connector.getUser(dbConfig);
             String password = Connector.getPassword(dbConfig);
-            String hibernateConnectionURL = dbProtocol+"://"+serverName+":"+port+"/"+dbName;
+            
+            String hibernateConnectionURL = getConnectionURL(dbConfig)+"/"+dbName;
             Configuration configuration = new Configuration();
             
-            monitor.worked(30);
+            //monitor.worked(30);
             monitor.setTaskName("Configuring Hibernate mappings");
             
-            configuration.configure(configFile);
+            configuration.configure(HibernateSessionFactory.class.getResource(CONFIG_FILE_LOCATION));
             
-            monitor.worked(80);
+            //monitor.worked(80);
             monitor.setTaskName("Building Session Factory");
             
             configuration.setProperty("hibernate.connection.url",hibernateConnectionURL);
             configuration.setProperty("hibernate.connection.username",login);
             configuration.setProperty("hibernate.connection.password",password);
+            
             configuration.addSqlFunction( "count", new ClassicCountFunction()); 
             configuration.addSqlFunction( "avg", new ClassicAvgFunction()); 
             configuration.addSqlFunction( "sum", new ClassicSumFunction());            
-            SessionFactory sessionFactory = configuration.buildSessionFactory();
-            sessionFactoryMap.put(dbConfig, sessionFactory);
+            assureDatabaseExists(dbConfig, configuration);
             
-            monitor.done();
+            //monitor.done();
         }
         catch(Exception e) { 
             Logger.error(e, "%%%% Error Creating SessionFactory %%%%");
+            throw new RuntimeException(e);
         }
     }
 
@@ -116,6 +126,31 @@ public class HibernateSessionFactory {
         if(session != null && session.isOpen()) {
             session.close();
         }
+    }
+
+    private static void assureDatabaseExists(String dbConfig, Configuration configuration) throws Exception{
+    	SessionFactory sessionFactory = null;
+    	try{
+    		sessionFactory = configuration.buildSessionFactory();
+    		Session session = sessionFactory.openSession();
+	    	Query query =session.createQuery("from Workspace");
+	    	Workspace value = (Workspace)query.uniqueResult();
+    	}catch(Exception e){
+    		Logger.error("Database not exists for dbConfig: "+dbConfig);
+    		Logger.error("Creating Database schema...");
+    		// If error while selection, mean db not exist, need to create it
+    		String hibernateConnectionURL = getConnectionURL(dbConfig);
+    		String dbName = Connector.getDBName(dbConfig);
+    		configuration.setProperty("hibernate.connection.url",hibernateConnectionURL);
+    		configuration.setProperty(Environment.DEFAULT_SCHEMA,dbName );
+    		sessionFactory = configuration.buildSessionFactory();
+    		Session session=sessionFactory.openSession();
+    		SQLQuery query = session.createSQLQuery("CREATE SCHEMA `"+dbName+"`");
+    		query.executeUpdate();
+    		SchemaExport schema = new SchemaExport(configuration);
+    	    schema.create(true, true);
+    	}
+    	sessionFactoryMap.put(dbConfig, sessionFactory);
     }
 
  }

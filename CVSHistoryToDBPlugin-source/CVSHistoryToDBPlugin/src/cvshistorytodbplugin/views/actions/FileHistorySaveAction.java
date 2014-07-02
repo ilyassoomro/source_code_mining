@@ -17,22 +17,9 @@ import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.team.core.history.IFileHistory;
 import org.eclipse.team.core.history.IFileRevision;
-import org.eclipse.team.internal.ccvs.core.CVSMessages;
-import org.eclipse.team.internal.ccvs.core.CVSStatus;
-import org.eclipse.team.internal.ccvs.core.CVSTag;
-import org.eclipse.team.internal.ccvs.core.ICVSFolder;
-import org.eclipse.team.internal.ccvs.core.ICVSRemoteResource;
-import org.eclipse.team.internal.ccvs.core.ICVSRepositoryLocation;
-import org.eclipse.team.internal.ccvs.core.ICVSResource;
 import org.eclipse.team.internal.ccvs.core.Policy;
-import org.eclipse.team.internal.ccvs.core.client.Command;
-import org.eclipse.team.internal.ccvs.core.client.Command.LocalOption;
-import org.eclipse.team.internal.ccvs.core.client.listeners.ICommandOutputListener;
-import org.eclipse.team.internal.ccvs.core.filehistory.CVSFileHistory;
-import org.eclipse.team.internal.ccvs.core.filehistory.CVSFileRevision;
-import org.eclipse.team.internal.ccvs.core.resources.CVSWorkspaceRoot;
-import org.eclipse.team.internal.ccvs.core.resources.EclipseFile;
 import org.eclipse.ui.IViewSite;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
@@ -41,8 +28,9 @@ import cvshistorytodbplugin.model.ProjectFolder;
 import cvshistorytodbplugin.model.TreeFile;
 import cvshistorytodbplugin.model.TreeFolder;
 import cvshistorytodbplugin.model.TreeNode;
+import cvshistorytodbplugin.model.db.DBFileRevision;
 import cvshistorytodbplugin.service.HistoryToDBService;
-import cvshistorytodbplugin.util.CVSUtility;
+import cvshistorytodbplugin.util.FileHistoryUtility;
 import cvshistorytodbplugin.util.HibernateSessionFactory;
 import cvshistorytodbplugin.util.InputDialogUtility;
 import cvshistorytodbplugin.util.Logger;
@@ -83,6 +71,7 @@ public class FileHistorySaveAction extends Action {
 	
 	class SaveHistoryJob extends Job {
 		IStructuredSelection selection;
+		
 		public SaveHistoryJob(IStructuredSelection selection) {
 			super("Saving File History");
 			this.selection =selection;
@@ -108,7 +97,7 @@ public class FileHistorySaveAction extends Action {
 					monitor.beginTask("Saving File History: ", resourceCount);
 
 					Iterator it = selection.iterator();
-					Logger.debug("Receiving File History of ...");
+					Logger.debug("Saving history start");
 					while (it.hasNext()) {
 						Object node = it.next();
 						if (node instanceof TreeNode) {
@@ -117,11 +106,12 @@ public class FileHistorySaveAction extends Action {
 
 							if (node instanceof TreeFile) {
 								saveFileHistory(((TreeFile) node),projectFolder, dbConfig, monitor);
-							} else if (node instanceof TreeFolder) {
-								saveFolderHistory(((TreeFolder) node), projectFolder, dbConfig, monitor);
+							} else if (node instanceof TreeFolder || node instanceof ProjectFolder) {
+								saveFolderHistory(((TreeNode) node), projectFolder, dbConfig, monitor);
 							}
 						}
 					}
+					Logger.debug("Saving history done");
 				}
 			} catch (OperationCanceledException c) {
 				Logger.error("Save History Action Cancelled");
@@ -146,12 +136,15 @@ public class FileHistorySaveAction extends Action {
 				else if(node instanceof TreeFolder){
 					count+=((TreeFolder)node).getChildCount();
 				}
+				else if(node instanceof ProjectFolder){
+					count+=((ProjectFolder)node).getChildCount();
+				}
 			}
 		}
 		return count;
 	}
 	
-	private void saveFolderHistory(TreeFolder treeFolder,ProjectFolder projectFolder,String dbConfig, IProgressMonitor monitor) throws Exception{
+	private void saveFolderHistory(TreeNode treeFolder,ProjectFolder projectFolder,String dbConfig, IProgressMonitor monitor) throws Exception{
 		if(treeFolder.hasChildren()){
 			Object[] childs = treeFolder.getChildren();
 			for(Object child: childs){
@@ -175,32 +168,32 @@ public class FileHistorySaveAction extends Action {
 		if(path.length()>30){
 			path = path.substring(0,29)+"..";
 		}
-		monitor.setTaskName("Saving History of File("+(currentResourceIndex)+" of "+resourceCount+"): "+(path+"/"+file.getName()));
+		String message = "Saving History of File("+(currentResourceIndex)+" of "+resourceCount+"): "+(path+"/"+file.getName());
+		//monitor  = Policy.subMonitorFor(monitor, 1);
 		
 		Transaction tx = null;
 		try{
 			Session session = HibernateSessionFactory.getSession(dbConfig, monitor);
 			tx = session.beginTransaction();
+			//monitor.worked(10);
 			
-			EclipseFile eclipseFile = (EclipseFile)CVSWorkspaceRoot.getCVSFileFor(file);
-			Logger.debug(eclipseFile);
+			monitor.setTaskName(message);
+			Logger.debug(message);
 			
 			Policy.checkCanceled(monitor);
-			
-			CVSFileHistory fileHistory = new CVSFileHistory(eclipseFile); 
-			fileHistory.refresh(CVSFileHistory.REFRESH_REMOTE, monitor);
-			IFileRevision[] revisions = (IFileRevision[])fileHistory.getFileRevisions();
-			
-			for(int i=0;i<revisions.length; i++){
-				IFileRevision revision = revisions[i]; 
-				
-				Policy.checkCanceled(monitor);
-				//HistoryToDBView.readAndUpdate();
-
-				cvshistorytodbplugin.model.CVSFileRevision cvsFileRevision = HistoryToDBService.saveCVSFileRevision((CVSFileRevision)revision, eclipseFile,fileHistory,monitor, session);
-				
+			IFileHistory fileHistory = FileHistoryUtility.getFileHistory(file);
+			if(fileHistory!=null){			// If file is not managed by repository
+				IFileRevision[] revisions = FileHistoryUtility.getFileRevisions(file, fileHistory);
+				if(revisions!=null){
+					for(int i=0;i<revisions.length; i++){
+						IFileRevision revision = revisions[i]; 
+						
+						Policy.checkCanceled(monitor);
+						//HistoryToDBView.readAndUpdate();
+						DBFileRevision dbFileRevision = HistoryToDBService.saveFileRevision(revision, file,fileHistory,monitor, session);
+					}
+				}
 			}
-			
 			tx.commit();
 			
 		}catch(Exception e){
@@ -213,7 +206,6 @@ public class FileHistorySaveAction extends Action {
 		}
 		currentResourceIndex++;
 		monitor.worked(1);
-		//monitor.internalWorked(1);
 		Policy.checkCanceled(monitor);
 		//HistoryToDBView.readAndUpdate();
 	}

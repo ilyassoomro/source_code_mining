@@ -22,13 +22,13 @@ public class ProjectFolder extends TreeNode {
 	
 	
 	public ProjectFolder(IProject project) {
-		super(project!=null ? project.getName() : "Unknwon Project");
+		super(project!=null ? project.getName() : "No Project Found");
 		this.project = project;
 	}
 	
 	@Override
 	public int compareTo(TreeNode o) {
-		if(o instanceof ProjectFolder){
+		if(o instanceof ProjectFolder && project!=null){
 			return this.project.getName().toLowerCase().compareTo(((ProjectFolder)o).project.getName().toLowerCase()); 
 		}
 		return super.compareTo(o);
@@ -66,7 +66,7 @@ public class ProjectFolder extends TreeNode {
 	
 	private boolean membersListed = false;
 	private void listMembers(){
-		if(project.isOpen()){
+		if(project!=null && project.isOpen()){
 			if(!membersListed){
 				try{
 					IResource[] resources = project.members();
@@ -85,6 +85,48 @@ public class ProjectFolder extends TreeNode {
 				}
 			}
 		}
+	}
+	
+	public Integer getChildCount(){
+		int count=0;
+		if(project!=null){
+			IResource[] resources;
+			try {
+				resources = project.members();
+				for(IResource resource: resources){
+					if(resource instanceof Folder){
+						count+=getFileCount((Folder)resource);
+					}
+					else if(resource instanceof File){
+						count++;
+					}
+				}
+			} catch (CoreException e) {
+				Logger.error(e, "Error while determining file count of folder");
+			}
+		}
+		return count;
+	}
+	
+	public static int getFileCount(Folder folder){
+		int count=0;
+		if(folder!=null){
+			IResource[] resources;
+			try {
+				resources = folder.members();
+				for(IResource resource: resources){
+					if(resource instanceof Folder){
+						count+=getFileCount((Folder)resource);
+					}
+					else if(resource instanceof File){
+						count++;
+					}
+				}
+			} catch (CoreException e) {
+				Logger.error(e, "Error while determining file count of folder");
+			}
+		}
+		return count;
 	}
 	
 	public String getDbConfig() {

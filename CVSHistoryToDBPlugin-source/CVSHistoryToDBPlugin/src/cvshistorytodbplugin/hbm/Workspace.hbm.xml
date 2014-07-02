@@ -4,7 +4,8 @@
 
 <hibernate-mapping>
 
-    <class name="cvshistorytodbplugin.model.Workspace" table="workspace">
+    <class name="cvshistorytodbplugin.model.db.Workspace" table="workspace">
+		<cache usage="read-only" />
 
         <id name="workspaceId" type="java.lang.Integer" column="workspace_id">
             <generator class="identity"/>

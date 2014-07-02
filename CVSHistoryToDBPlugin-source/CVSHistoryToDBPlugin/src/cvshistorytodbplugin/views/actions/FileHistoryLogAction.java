@@ -13,12 +13,13 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Synchronizer;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.team.core.RepositoryProvider;
+import org.eclipse.team.core.history.IFileHistory;
+import org.eclipse.team.core.history.IFileHistoryProvider;
 import org.eclipse.team.core.history.IFileRevision;
 import org.eclipse.team.core.history.ITag;
 import org.eclipse.team.internal.ccvs.core.CVSStatus;
-import org.eclipse.team.internal.ccvs.core.CVSTag;
 import org.eclipse.team.internal.ccvs.core.ICVSRemoteResource;
 import org.eclipse.team.internal.ccvs.core.ICVSResource;
 import org.eclipse.team.internal.ccvs.core.Policy;
@@ -32,6 +33,7 @@ import org.eclipse.team.internal.ccvs.core.resources.EclipseFile;
 import org.eclipse.ui.IViewSite;
 
 import cvshistorytodbplugin.model.TreeFile;
+import cvshistorytodbplugin.util.FileHistoryUtility;
 import cvshistorytodbplugin.util.Logger;
 import cvshistorytodbplugin.views.presentation.NodeContentProvider;
 
@@ -68,14 +70,15 @@ public class FileHistoryLogAction extends Action {
 					Object node = it.next();
 					if(node instanceof TreeFile){
 						File file = ((TreeFile) node).getFile();
-						EclipseFile eclipseFile = (EclipseFile)CVSWorkspaceRoot.getCVSFileFor(file);
+						IFileRevision[] revisions = FileHistoryUtility.getFileRevisions(file);
+						/*EclipseFile eclipseFile = (EclipseFile)CVSWorkspaceRoot.getCVSFileFor(file);
 						Logger.debug(eclipseFile);
 						
 						message.append("\n\nFile: "+eclipseFile+"{\n");
 						CVSFileHistory fileHistory = new CVSFileHistory(eclipseFile); 
 						fileHistory.refresh(CVSFileHistory.REFRESH_REMOTE, new NullProgressMonitor());
 						IFileRevision[] revisions = fileHistory.getFileRevisions();
-						
+						*/
 						for(IFileRevision revision: revisions){ 
 							message.append("\tRevision : "+revision.getContentIdentifier()+"\n");
 							message.append("\tAuthor : "+revision.getAuthor()+"\n");

@@ -9,14 +9,14 @@ import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.exception.ConstraintViolationException;
 
-import cvshistorytodbplugin.model.CVSAuthor;
-import cvshistorytodbplugin.model.CVSFile;
-import cvshistorytodbplugin.model.CVSFileRevision;
-import cvshistorytodbplugin.model.CVSFileType;
-import cvshistorytodbplugin.model.CVSProject;
-import cvshistorytodbplugin.model.CVSRepository;
-import cvshistorytodbplugin.model.CVSTag;
-import cvshistorytodbplugin.model.Workspace;
+import cvshistorytodbplugin.model.db.DBAuthor;
+import cvshistorytodbplugin.model.db.DBFile;
+import cvshistorytodbplugin.model.db.DBFileRevision;
+import cvshistorytodbplugin.model.db.DBFileType;
+import cvshistorytodbplugin.model.db.DBProject;
+import cvshistorytodbplugin.model.db.DBRepository;
+import cvshistorytodbplugin.model.db.DBTag;
+import cvshistorytodbplugin.model.db.Workspace;
 import cvshistorytodbplugin.util.Logger;
 
 public class BaseService{
@@ -51,13 +51,12 @@ public class BaseService{
 	
 	public static <Type> Type save(Type object, Session session){
 		try{
-			Type existingObject = getByUniqueKey(object, session);
-			if(existingObject==null){
+			//Type existingObject = getByUniqueKey(object, session);
+			//if(existingObject==null){
 				session.saveOrUpdate(object);
-				LocalCache.cache(object);
-			}else{
-				return existingObject;
-			}
+			//}else{
+			//	return existingObject;
+			//}
 		}catch(ConstraintViolationException e){
 			if(e.getCause()!=null && e.getCause().getMessage().toLowerCase().contains("duplicate entry")){
 				Logger.error("Object already exist in database: "+object);
@@ -71,38 +70,38 @@ public class BaseService{
 	}
 	
 	public static <Type> Type getByUniqueKey(Type object, Session session){
-		if(object instanceof CVSAuthor){
-			return (Type)getObjectByCriteria(object.getClass(), Restrictions.eq("name", ((CVSAuthor)object).getName()), session);
+		if(object instanceof DBAuthor){
+			return (Type)getObjectByCriteria(object.getClass(), Restrictions.eq("name", ((DBAuthor)object).getName()), session);
 		}
-		else if(object instanceof CVSFile){
-			return (Type)getObjectByCriteria(object.getClass(), new Criterion[]{Restrictions.eq("name", ((CVSFile)object).getName()),
-														Restrictions.eq("path", ((CVSFile)object).getPath()),
-														Restrictions.eq("project", ((CVSFile)object).getProject())
+		else if(object instanceof DBFile){
+			return (Type)getObjectByCriteria(object.getClass(), new Criterion[]{Restrictions.eq("name", ((DBFile)object).getName()),
+														Restrictions.eq("path", ((DBFile)object).getPath()),
+														Restrictions.eq("project", ((DBFile)object).getProject())
 																	}, session);
 		}
-		else if(object instanceof CVSRepository){
-			return (Type)getObjectByCriteria(object.getClass(), new Criterion[]{Restrictions.eq("host", ((CVSRepository)object).getHost()),
-														Restrictions.eq("path", ((CVSRepository)object).getPath()),
-														Restrictions.eq("port", ((CVSRepository)object).getPort())
+		else if(object instanceof DBRepository){
+			return (Type)getObjectByCriteria(object.getClass(), new Criterion[]{Restrictions.eq("host", ((DBRepository)object).getHost()),
+														Restrictions.eq("path", ((DBRepository)object).getPath()),
+														Restrictions.eq("port", ((DBRepository)object).getPort())
 																	}, session);
 		}
-		else if(object instanceof CVSTag){
-			return (Type)getObjectByCriteria(object.getClass(), Restrictions.eq("tagName", ((CVSTag)object).getTagName()), session);
+		else if(object instanceof DBTag){
+			return (Type)getObjectByCriteria(object.getClass(), Restrictions.eq("tagName", ((DBTag)object).getTagName()), session);
 		}
-		else if(object instanceof CVSFileRevision){
-			return (Type)getObjectByCriteria(object.getClass(),new Criterion[]{Restrictions.eq("cvsFile", ((CVSFileRevision)object).getCvsFile()),
-														Restrictions.eq("revision", ((CVSFileRevision)object).getRevision()),
-														Restrictions.eq("committedDate", ((CVSFileRevision)object).getCommittedDate())
+		else if(object instanceof DBFileRevision){
+			return (Type)getObjectByCriteria(object.getClass(),new Criterion[]{Restrictions.eq("dbFile", ((DBFileRevision)object).getDbFile()),
+														Restrictions.eq("revision", ((DBFileRevision)object).getRevision()),
+														Restrictions.eq("committedDate", ((DBFileRevision)object).getCommittedDate())
 																	}, session);
 		}
-		else if(object instanceof CVSFileType){
-			return (Type)getObjectByCriteria(object.getClass(), Restrictions.eq("extension", ((CVSFileType)object).getExtension()), session);
+		else if(object instanceof DBFileType){
+			return (Type)getObjectByCriteria(object.getClass(), Restrictions.eq("extension", ((DBFileType)object).getExtension()), session);
 		}
-		else if(object instanceof CVSProject){
+		else if(object instanceof DBProject){
 			return (Type)getObjectByCriteria(object.getClass(), 
-										new Criterion[]{Restrictions.eq("name", ((CVSProject)object).getName()),
-														Restrictions.eq("path", ((CVSProject)object).getPath()),
-														Restrictions.eq("workspace", ((CVSProject)object).getWorkspace())
+										new Criterion[]{Restrictions.eq("name", ((DBProject)object).getName()),
+														Restrictions.eq("path", ((DBProject)object).getPath()),
+														Restrictions.eq("workspace", ((DBProject)object).getWorkspace())
 																	}, session);
 		}
 		else if(object instanceof Workspace){
